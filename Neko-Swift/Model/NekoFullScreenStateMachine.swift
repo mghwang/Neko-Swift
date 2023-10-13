@@ -105,6 +105,7 @@ class NekoFullScreenStateMachine: NekoStateMachine {
     private func handleStop() {
         if isNekoMoveStart {
             currentState = .awake
+            return
         }
         if stateCount >= 4 {
             currentState = .jare
@@ -217,28 +218,25 @@ class NekoFullScreenStateMachine: NekoStateMachine {
         
     }
     
+    let imageWidthHalf = 32.0/2.0
+    let imageHeightHalf = 32.0/2.0
+    let cursorBoundaryRadius = 40.0
+    let nekoSpeedFactor = 13.0
+
     private func calcDxDy(mousePos: NSPoint, nekoPos: NSPoint) {
-        // TODO: Figure out what this magic number does...
-        let deltaX = floor(mousePos.x - nekoPos.x - 16.0)
-        let deltaY = floor(mousePos.y - nekoPos.y)
-        
-        let length = hypot(deltaX, deltaY)
-        
-        guard length != 0 else {
+        let deltaX = floor(mousePos.x - nekoPos.x - imageWidthHalf)
+        let deltaY = floor(mousePos.y - nekoPos.y - imageHeightHalf)
+
+        let distance = hypot(deltaX, deltaY)
+
+        guard distance >= cursorBoundaryRadius else {
+            // when neko is within the cursor boundary...
             nekoMoveDx = 0
             nekoMoveDy = 0
             return
         }
-        
-        // TODO: Figure out what this magic number does...
-        if length <= 13 {
-            nekoMoveDx = Float(deltaX)
-            nekoMoveDy = Float(deltaY)
-        } else {
-            nekoMoveDx = Float((13.0 * deltaX) / length)
-            nekoMoveDy = Float((13.0 * deltaY) / length)
-        }
-        
+        nekoMoveDx = Float((nekoSpeedFactor * deltaX) / distance)
+        nekoMoveDy = Float((nekoSpeedFactor * deltaY) / distance)
     }
     
 }
